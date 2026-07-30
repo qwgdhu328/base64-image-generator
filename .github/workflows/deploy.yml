@@ -1,0 +1,71 @@
+name: 🚀 Deploy & Validate
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+jobs:
+  validate:
+    name: ✅ Validate Code
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: 🔍 Validate HTML
+        run: |
+          echo "=== Checking HTML structure ==="
+          if grep -q '<!DOCTYPE html>' index.html; then
+            echo "✅ DOCTYPE found"
+          else
+            echo "❌ Missing DOCTYPE" && exit 1
+          fi
+          if grep -q '<html' index.html; then
+            echo "✅ <html> tag found"
+          else
+            echo "❌ Missing <html> tag" && exit 1
+          fi
+          if grep -q '</html>' index.html; then
+            echo "✅ Closing </html> found"
+          else
+            echo "❌ Missing </html>" && exit 1
+          fi
+          echo ""
+          echo "=== All validations passed! ==="
+
+      - name: 📏 Check file sizes
+        run: |
+          echo "=== File sizes ==="
+          echo "index.html : $(wc -c < index.html) bytes"
+          echo "style.css  : $(wc -c < style.css) bytes"
+          echo "script.js  : $(wc -c < script.js) bytes"
+
+  deploy:
+    name: 🌐 GitHub Pages Deploy
+    needs: validate
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://qwgdhu328.github.io/base64-image-generator/
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: 📋 Deployment Info
+        run: |
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "🚀 Deploying to GitHub Pages"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "📦 Commit: ${{ github.sha }}"
+          echo "👤 Author: ${{ github.actor }}"
+          echo "📝 Message: ${{ github.event.head_commit.message }}"
+          echo "🌐 URL: https://qwgdhu328.github.io/base64-image-generator/"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+      - name: ⏳ Wait for Pages deploy
+        run: |
+          echo "GitHub Pages builds automatically from the master branch."
+          echo "The site will be live in ~60 seconds after push."
+          echo ""
+          echo "🔗 https://qwgdhu328.github.io/base64-image-generator/"
