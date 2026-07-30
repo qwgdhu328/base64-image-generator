@@ -3,188 +3,189 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Base64 Image Generator</title>
+  <title>DevHub - Social Tech Community</title>
+  <meta name="description" content="La community dove sviluppatori condividono progetti e video tech">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <div class="bg-glow"></div>
 
-  <header>
-    <nav class="navbar">
-      <span class="logo">🖼️ Base64<span class="accent">Generator</span></span>
-      <div class="nav-links">
-        <button class="tab-btn active" data-tab="generator">🎨 Generatore</button>
-        <button class="tab-btn" data-tab="converter">📤 Convertitore</button>
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="nav-inner">
+      <span class="logo">🚀 Dev<span class="accent">Hub</span></span>
+      <div class="nav-actions" id="navActions">
+        <button class="btn btn-outline" id="btnLogin">🔐 Accedi</button>
       </div>
-    </nav>
-  </header>
+    </div>
+  </nav>
+
+  <!-- Hero (guest only) -->
+  <section class="hero" id="hero">
+    <h1>Condividi progetti & video tech<br>con la community</h1>
+    <p>Pubblica i tuoi progetti open source, condividi tutorial video e scopri cosa costruiscono gli altri</p>
+    <div class="hero-buttons">
+      <button class="btn btn-primary btn-lg" id="btnHeroStart">🚀 Inizia ora — È gratis</button>
+    </div>
+  </section>
 
   <main>
-    <!-- Hero -->
-    <section class="hero">
-      <h1>Generatore Base64<span class="accent">.</span></h1>
-      <p>Converti immagini in Base64 o creane di nuove. Copia in raw, Data URI, CSS o HTML. Gratis e senza limiti.</p>
-    </section>
-
-    <!-- TAB 1: Generatore -->
-    <section class="tab-content active" id="tab-generator">
-      <div class="workspace">
-        <!-- Pannello di controllo -->
-        <div class="panel panel-controls">
-          <h2>🎨 Crea Immagine</h2>
-
-          <div class="control-group">
-            <label>Larghezza (px)</label>
-            <input type="number" id="genWidth" value="400" min="50" max="2000" step="10">
-          </div>
-          <div class="control-group">
-            <label>Altezza (px)</label>
-            <input type="number" id="genHeight" value="300" min="50" max="2000" step="10">
-          </div>
-          <div class="control-group">
-            <label>Colore Sfondo</label>
-            <div class="color-picker-wrap">
-              <input type="color" id="genBgColor" value="#7c3aed">
-              <input type="text" id="genBgColorHex" value="#7c3aed" maxlength="7">
-            </div>
-          </div>
-          <div class="control-group">
-            <label>Tipo Sfondo</label>
-            <select id="genBgType">
-              <option value="solid">Tinta Unita</option>
-              <option value="gradient">Gradiente</option>
-              <option value="pattern">Pattern Geometrico</option>
-              <option value="noise">Noise</option>
-            </select>
-          </div>
-          <div class="control-group" id="gradientGroup" style="display:none">
-            <label>Colore Gradiente 2</label>
-            <input type="color" id="genGradColor" value="#ec4899">
-          </div>
-
-          <div class="control-group">
-            <label>Testo</label>
-            <input type="text" id="genText" value="Hello World" placeholder="Inserisci testo..." maxlength="100">
-          </div>
-          <div class="control-group">
-            <label>Font (px)</label>
-            <input type="number" id="genFontSize" value="48" min="10" max="200" step="2">
-          </div>
-          <div class="control-group">
-            <label>Colore Testo</label>
-            <input type="color" id="genTextColor" value="#ffffff">
-          </div>
-          <div class="control-group">
-            <label>Font Family</label>
-            <select id="genFontFamily">
-              <option value="Inter, sans-serif">Inter (Modern)</option>
-              <option value="Georgia, serif">Georgia (Elegant)</option>
-              <option value="'Courier New', monospace">Courier New (Code)</option>
-              <option value="'Comic Sans MS', cursive">Comic Sans (Fun)</option>
-              <option value="Impact, fantasy">Impact (Bold)</option>
-            </select>
-          </div>
-
-          <button class="btn btn-primary btn-full" id="btnGenerate">🖼️ Genera Immagine</button>
-        </div>
-
-        <!-- Anteprima e Output -->
-        <div class="panel-preview-area">
-          <div class="panel panel-preview">
-            <div class="preview-header">
-              <h2>👁️ Anteprima</h2>
-              <span class="preview-size" id="previewDimensions">400 × 300</span>
-            </div>
-            <div class="preview-container" id="previewContainer">
-              <canvas id="previewCanvas" width="400" height="300"></canvas>
-            </div>
-          </div>
-
-          <div class="panel panel-output">
-            <div class="output-header">
-              <h2>📋 Output Base64</h2>
-              <div class="output-actions">
-                <button class="btn btn-sm" id="btnCopyRaw">Raw Base64</button>
-                <button class="btn btn-sm" id="btnCopyDataUri">Data URI</button>
-                <button class="btn btn-sm" id="btnCopyCss">CSS</button>
-                <button class="btn btn-sm" id="btnCopyHtml">HTML</button>
-                <button class="btn btn-sm btn-primary" id="btnDownload">💾 Scarica PNG</button>
-              </div>
-            </div>
-            <textarea id="outputBase64" readonly placeholder="Genera o carica un'immagine per vedere il Base64..."></textarea>
-            <div class="output-stats" id="outputStats"></div>
-          </div>
-        </div>
+    <!-- Feed Tabs (logged in) -->
+    <div class="feed-header" id="feedHeader" style="display:none">
+      <div class="feed-tabs">
+        <button class="feed-tab active" data-feed="projects">💻 Progetti</button>
+        <button class="feed-tab" data-feed="videos">🎬 Video</button>
       </div>
-    </section>
-
-    <!-- TAB 2: Convertitore -->
-    <section class="tab-content" id="tab-converter">
-      <div class="workspace">
-        <div class="panel panel-controls">
-          <h2>📤 Converti Immagine</h2>
-          <p class="panel-desc">Trascina un'immagine o clicca per caricarla</p>
-
-          <div class="dropzone" id="dropzone">
-            <div class="dropzone-inner">
-              <span class="dropzone-icon">📁</span>
-              <p>Trascina qui l'immagine</p>
-              <span class="dropzone-or">oppure</span>
-              <button class="btn btn-outline" id="btnBrowse">Sfoglia File</button>
-              <input type="file" id="fileInput" accept="image/*" hidden>
-            </div>
-          </div>
-
-          <div class="control-group">
-            <label>Formato Output</label>
-            <select id="convertFormat">
-              <option value="image/png">PNG</option>
-              <option value="image/jpeg">JPEG</option>
-              <option value="image/webp">WebP</option>
-            </select>
-          </div>
-          <div class="control-group" id="qualityGroup">
-            <label>Qualità JPEG/WebP: <span id="qualityValue">90</span>%</label>
-            <input type="range" id="convertQuality" min="10" max="100" value="90">
-          </div>
-        </div>
-
-        <div class="panel-preview-area">
-          <div class="panel panel-preview">
-            <div class="preview-header">
-              <h2>👁️ Anteprima</h2>
-              <span class="preview-size" id="convertDimensions">—</span>
-            </div>
-            <div class="preview-container" id="convertPreview">
-              <div class="preview-placeholder" id="convertPlaceholder">
-                <span>🖼️</span>
-                <p>Nessuna immagine caricata</p>
-              </div>
-              <img id="convertImage" style="display:none" alt="Anteprima">
-            </div>
-          </div>
-
-          <div class="panel panel-output">
-            <div class="output-header">
-              <h2>📋 Output Base64</h2>
-              <div class="output-actions">
-                <button class="btn btn-sm" id="btnCopyRaw2">Raw Base64</button>
-                <button class="btn btn-sm" id="btnCopyDataUri2">Data URI</button>
-                <button class="btn btn-sm" id="btnCopyCss2">CSS</button>
-                <button class="btn btn-sm" id="btnCopyHtml2">HTML</button>
-                <button class="btn btn-sm btn-primary" id="btnDownload2">💾 Scarica</button>
-              </div>
-            </div>
-            <textarea id="outputBase642" readonly placeholder="Carica un'immagine per vedere il Base64..."></textarea>
-            <div class="output-stats" id="outputStats2"></div>
-          </div>
-        </div>
+      <div class="feed-actions">
+        <button class="btn btn-primary" id="btnNewProject">➕ Nuovo Progetto</button>
+        <button class="btn btn-outline" id="btnNewVideo">🎥 Nuovo Video</button>
       </div>
-    </section>
+    </div>
+
+    <!-- Projects Grid -->
+    <div class="content-grid" id="contentGrid">
+      <div class="loading">Caricamento...</div>
+    </div>
+
+    <!-- Empty State -->
+    <div class="empty-state" id="emptyState" style="display:none">
+      <span>📭</span>
+      <h3>Ancora nulla qui</h3>
+      <p>Sii il primo a condividere qualcosa!</p>
+      <button class="btn btn-primary" id="btnEmptyCreate">➕ Crea ora</button>
+    </div>
   </main>
 
+  <!-- Footer -->
+  <footer>
+    <p>DevHub · <span id="footerCount">0</span> contenuti condivisi · 
+    <a href="https://github.com/qwgdhu328/base64-image-generator" target="_blank" rel="noopener">GitHub</a></p>
+  </footer>
+
+  <!-- ===== MODAL: Auth ===== -->
+  <div class="modal-overlay" id="modalAuth">
+    <div class="modal">
+      <button class="modal-close" id="closeAuth">✕</button>
+      <div class="modal-tabs">
+        <button class="modal-tab active" data-tab="login">Accedi</button>
+        <button class="modal-tab" data-tab="signup">Registrati</button>
+      </div>
+      <form class="auth-form active" id="formLogin">
+        <div class="control-group">
+          <label>Email</label>
+          <input type="email" id="loginEmail" placeholder="tua@email.com" required>
+        </div>
+        <div class="control-group">
+          <label>Password</label>
+          <input type="password" id="loginPassword" placeholder="••••••••" required minlength="6">
+        </div>
+        <p class="auth-error" id="loginError"></p>
+        <button type="submit" class="btn btn-primary btn-full">🔐 Accedi</button>
+      </form>
+      <form class="auth-form" id="formSignup">
+        <div class="control-group">
+          <label>Username</label>
+          <input type="text" id="signupUsername" placeholder="devname" required>
+        </div>
+        <div class="control-group">
+          <label>Email</label>
+          <input type="email" id="signupEmail" placeholder="tua@email.com" required>
+        </div>
+        <div class="control-group">
+          <label>Password</label>
+          <input type="password" id="signupPassword" placeholder="••••••••" required minlength="6">
+        </div>
+        <p class="auth-error" id="signupError"></p>
+        <button type="submit" class="btn btn-primary btn-full">🚀 Registrati</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ===== MODAL: Project ===== -->
+  <div class="modal-overlay" id="modalProject">
+    <div class="modal modal-lg">
+      <button class="modal-close" id="closeProject">✕</button>
+      <h2 id="modalProjectTitle">➕ Nuovo Progetto</h2>
+      <form id="formProject">
+        <input type="hidden" id="editProjectId">
+        <div class="control-group">
+          <label>Titolo *</label>
+          <input type="text" id="projectTitle" placeholder="Nome del progetto" required maxlength="100">
+        </div>
+        <div class="control-group">
+          <label>Descrizione *</label>
+          <textarea id="projectDesc" placeholder="Descrivi il progetto..." required maxlength="600" rows="3"></textarea>
+        </div>
+        <div class="form-row">
+          <div class="control-group">
+            <label>Link Progetto</label>
+            <input type="url" id="projectUrl" placeholder="https://github.com/...">
+          </div>
+          <div class="control-group">
+            <label>URL Immagine</label>
+            <input type="url" id="projectImage" placeholder="https://...">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="control-group">
+            <label>Categoria</label>
+            <select id="projectCategory">
+              <option value="web">🌐 Web</option>
+              <option value="mobile">📱 Mobile</option>
+              <option value="ai">🤖 AI / ML</option>
+              <option value="game">🎮 Gaming</option>
+              <option value="tool">🛠️ Tool</option>
+              <option value="other">📦 Altro</option>
+            </select>
+          </div>
+          <div class="control-group">
+            <label>Tags (virgole)</label>
+            <input type="text" id="projectTags" placeholder="react, typescript, api">
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary btn-full" id="btnSubmitProject">🚀 Pubblica Progetto</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ===== MODAL: Video ===== -->
+  <div class="modal-overlay" id="modalVideo">
+    <div class="modal modal-lg">
+      <button class="modal-close" id="closeVideo">✕</button>
+      <h2 id="modalVideoTitle">🎥 Nuovo Video</h2>
+      <form id="formVideo">
+        <input type="hidden" id="editVideoId">
+        <div class="control-group">
+          <label>Titolo *</label>
+          <input type="text" id="videoTitle" placeholder="Titolo del video" required maxlength="100">
+        </div>
+        <div class="control-group">
+          <label>Descrizione *</label>
+          <textarea id="videoDesc" placeholder="Descrivi il video..." required maxlength="600" rows="3"></textarea>
+        </div>
+        <div class="control-group">
+          <label>Link Video (YouTube / Vimeo) *</label>
+          <input type="url" id="videoUrl" placeholder="https://www.youtube.com/watch?v=..." required>
+        </div>
+        <div class="control-group">
+          <label>Tags (virgole)</label>
+          <input type="text" id="videoTags" placeholder="tutorial, javascript, devops">
+        </div>
+        <button type="submit" class="btn btn-primary btn-full" id="btnSubmitVideo">🎥 Pubblica Video</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ===== MODAL: Detail ===== -->
+  <div class="modal-overlay" id="modalDetail">
+    <div class="modal modal-lg">
+      <div id="detailContent"></div>
+    </div>
+  </div>
+
   <!-- Toast -->
-  <div class="toast" id="toast">Copiato! ✅</div>
+  <div class="toast" id="toast"></div>
 
   <script src="script.js"></script>
 </body>
