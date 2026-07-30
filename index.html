@@ -3,110 +3,83 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Base64 Image Generator</title>
+  <title>Open Model Hub - Directory Modelli AI Open Source</title>
+  <meta name="description" content="Scopri e condividi modelli AI open source: LLM, text-to-image, audio, video e molto altro.">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <div class="bg-animated"></div>
 
   <header class="header">
-    <div class="logo">🖼️ Base64 Generator</div>
-    <p class="subtitle">Carica un'immagine o creane una al volo — ottieni il base64 istantaneamente</p>
+    <div class="header-top">
+      <div class="logo">
+        <span class="logo-icon">🧠</span>
+        <span class="logo-text">Open<span class="logo-accent">Model</span>Hub</span>
+      </div>
+      <p class="subtitle">Scopri, condividi e usa modelli AI open source — tutti in un posto</p>
+    </div>
   </header>
 
   <main class="container">
-    <!-- Tab Switcher -->
-    <div class="tabs">
-      <button class="tab active" data-tab="upload">📤 Carica Immagine</button>
-      <button class="tab" data-tab="generate">🎨 Genera Immagine</button>
+    <!-- Stats Bar -->
+    <div class="stats-bar" id="statsBar">
+      <div class="stat"><span class="stat-num" id="statTotal">0</span> modelli</div>
+      <div class="stat"><span class="stat-num" id="statTypes">0</span> categorie</div>
+      <div class="stat"><span class="stat-num" id="statTop">—</span> top rated</div>
     </div>
 
-    <!-- Upload Panel -->
-    <section class="panel active" id="panel-upload">
-      <div class="dropzone" id="dropzone">
-        <div class="dropzone-content">
-          <div class="drop-icon">📁</div>
-          <p class="drop-text">Trascina qui la tua immagine</p>
-          <p class="drop-or">oppure</p>
-          <label class="btn btn-primary" for="fileInput">Sfoglia file</label>
-          <input type="file" id="fileInput" accept="image/*" hidden>
-          <p class="drop-hint">PNG, JPG, GIF, SVG, WebP • Max 10MB</p>
-        </div>
+    <!-- Search & Filters -->
+    <div class="controls">
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="searchInput" placeholder="Cerca modello per nome, autore, tags..." autocomplete="off" aria-label="Cerca modelli AI">
+        <button class="search-clear" id="searchClear" title="Pulisci">✕</button>
       </div>
-    </section>
 
-    <!-- Generate Panel -->
-    <section class="panel" id="panel-generate">
-      <div class="generator-form">
-        <div class="form-row">
-          <div class="form-group">
-            <label>Larghezza (px)</label>
-            <input type="number" id="genWidth" value="400" min="10" max="4000">
-          </div>
-          <div class="form-group">
-            <label>Altezza (px)</label>
-            <input type="number" id="genHeight" value="300" min="10" max="4000">
+      <div class="filters">
+        <div class="filter-group">
+          <span class="filter-label">Tipo:</span>
+          <div class="filter-chips" id="typeFilters">
+            <button class="chip active" data-type="all">Tutti</button>
           </div>
         </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Colore sfondo</label>
-            <div class="color-input-wrap">
-              <input type="color" id="genBgColor" value="#6366f1">
-              <input type="text" id="genBgColorText" value="#6366f1" maxlength="7">
-            </div>
-          </div>
-          <div class="form-group">
-            <label>Colore testo</label>
-            <div class="color-input-wrap">
-              <input type="color" id="genTextColor" value="#ffffff">
-              <input type="text" id="genTextColorText" value="#ffffff" maxlength="7">
-            </div>
-          </div>
+        <div class="filter-group">
+          <span class="filter-label"><label for="sortSelect">Ordina:</label></span>
+          <select id="sortSelect" class="sort-select">
+            <option value="rating">⭐ Migliori</option>
+            <option value="downloads">📥 Più scaricati</option>
+            <option value="newest">🆕 Più recenti</option>
+            <option value="name">🔤 Nome A-Z</option>
+          </select>
         </div>
-        <div class="form-group full">
-          <label>Testo sull'immagine</label>
-          <input type="text" id="genText" value="Hello World" placeholder="Testo da visualizzare...">
-        </div>
-        <div class="form-group full">
-          <label>Dimensione testo (px)</label>
-          <input type="range" id="genFontSize" min="12" max="120" value="48">
-          <span class="range-value" id="genFontSizeVal">48px</span>
-        </div>
-        <button class="btn btn-secondary" id="btnGenerate">✨ Genera Immagine</button>
       </div>
-    </section>
+    </div>
 
-    <!-- Result Area -->
-    <section class="result-section" id="resultSection" style="display:none;">
-      <div class="result-header">
-        <h2>✅ Risultato</h2>
-        <div class="result-actions">
-          <button class="btn btn-sm" id="btnCopy">📋 Copia Base64</button>
-          <button class="btn btn-sm" id="btnDownload">💾 Scarica</button>
-          <button class="btn btn-sm btn-danger" id="btnClear">🗑️ Cancella</button>
-        </div>
-      </div>
-      <div class="result-preview">
-        <img id="resultImage" alt="Preview">
-      </div>
-      <div class="result-info">
-        <span id="resultSize"></span>
-        <span id="resultDimensions"></span>
-        <span id="resultType"></span>
-      </div>
-      <div class="base64-output">
-        <label>Stringa Base64</label>
-        <div class="textarea-wrap">
-          <textarea id="base64Output" readonly rows="6" placeholder="Il base64 apparirà qui..."></textarea>
-          <button class="btn btn-sm btn-copy-inline" id="btnCopyInline" title="Copia">📋</button>
-        </div>
-        <div class="base64-format-btns">
-          <button class="btn btn-xs active" data-format="raw">Raw</button>
-          <button class="btn btn-xs" data-format="datauri">Data URI</button>
-          <button class="btn btn-xs" data-format="css">CSS url()</button>
-          <button class="btn btn-xs" data-format="html">HTML img</button>
-        </div>
+    <!-- Results Info -->
+    <div class="results-info" id="resultsInfo"></div>
+
+    <!-- Model Grid -->
+    <div class="model-grid" id="modelGrid">
+      <div class="loading">Caricamento modelli...</div>
+    </div>
+
+    <!-- No Results -->
+    <div class="no-results" id="noResults" style="display:none;">
+      <div class="no-results-icon">🔎</div>
+      <h3>Nessun modello trovato</h3>
+      <p>Prova a cambiare i filtri o la ricerca</p>
+      <button class="btn btn-primary" id="resetFilters">🔄 Resetta filtri</button>
+    </div>
+
+    <!-- Add Model CTA -->
+    <section class="add-model-cta">
+      <div class="cta-card">
+        <div class="cta-icon">📦</div>
+        <h3>Hai un modello da condividere?</h3>
+        <p>Aggiungilo al catalogo modificando <code>models.json</code> e facendo una Pull Request su GitHub!</p>
+        <a href="https://github.com/qwgdhu328/base64-image-generator" class="btn btn-secondary" target="_blank">
+          📝 Aggiungi su GitHub
+        </a>
       </div>
     </section>
   </main>
@@ -115,7 +88,7 @@
   <div class="toast" id="toast"></div>
 
   <footer class="footer">
-    <p>Base64 Image Generator • Open Source • Fatto con ❤️</p>
+    <p>🧠 OpenModelHub — Catalogo open source di modelli AI • <span id="footerCount">0</span> modelli in directory</p>
   </footer>
 
   <script src="script.js" defer></script>

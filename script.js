@@ -1,35 +1,269 @@
-/* ===== Tab Switching ===== */
-const tabs = document.querySelectorAll('.tab');
-const panels = document.querySelectorAll('.panel');
+/* ===== Open Model Hub — Directory Modelli AI ===== */
 
-tabs.forEach(tab => {
-  tab.addEventListener('click', () => {
-    tabs.forEach(t => t.classList.remove('active'));
-    panels.forEach(p => p.classList.remove('active'));
-    tab.classList.add('active');
-    document.getElementById(`panel-${tab.dataset.tab}`).classList.add('active');
+let models = [];
+let currentType = 'all';
+let currentSort = 'rating';
+let currentSearch = '';
+
+// Type definitions with icons and labels
+const TYPE_CONFIG = {
+  llm: { icon: '🤖', label: 'LLM' },
+  image: { icon: '🎨', label: 'Immagini' },
+  audio: { icon: '🎵', label: 'Audio' },
+  video: { icon: '🎬', label: 'Video' },
+  multimodal: { icon: '👁️', label: 'Multimodale' },
+  embedding: { icon: '🧬', label: 'Embedding' },
+  other: { icon: '📦', label: 'Altro' }
+};
+
+/* ===== Load Models ===== */
+async function loadModels() {
+  try {
+    const res = await fetch('models.json');
+    models = await res.json();
+    initApp();
+  } catch (err) {
+    document.getElementById('modelGrid').innerHTML = 
+      '<div class="loading">❌ Errore nel caricamento dei modelli</div>';
+  }
+}
+
+/* ===== Initialize ===== */
+function initApp() {
+  buildTypeFilters();
+  updateStats();
+  initCardDelegation();
+  renderModels();
+  bindEvents();
+}
+
+/* ===== Build Type Filter Chips ===== */
+function buildTypeFilters() {
+  const types = ['all', ...new Set(models.map(m => m.type))];
+  const container = document.getElementById('typeFilters');
+  
+  container.innerHTML = types.map(type => {
+    const config = TYPE_CONFIG[type];
+    const icon = config ? config.icon : '';
+    const label = type === 'all' ? 'Tutti' : (config ? config.label : type);
+    const count = type === 'all' ? models.length : models.filter(m => m.type === type).length;
+    return `<button class="chip${type === 'all' ? ' active' : ''}" data-type="${type}">
+      ${icon} ${label} <span class="count">${count}</span>
+    </button>`;
+  }).join('');
+}
+
+/* ===== Update Stats ===== */
+function updateStats() {
+  const filtered = getFilteredModels();
+  const types = new Set(filtered.map(m => m.type));
+  const top = filtered.reduce((best, m) => m.rating > (best?.rating || 0) ? m : best, null);
+  
+  document.getElementById('statTotal').textContent = filtered.length;
+  document.getElementById('statTypes').textContent = types.size;
+  document.getElementById('statTop').textContent = top ? top.name.split(' ')[0] : '—';
+  document.getElementById('footerCount').textContent = filtered.length;
+}
+
+/* ===== Get Filtered Models ===== */
+function getFilteredModels() {
+  let filtered = [...models];
+
+  // Type filter
+  if (currentType !== 'all') {
+    filtered = filtered.filter(m => m.type === currentType);
+  }
+
+  // Search
+  if (currentSearch.trim()) {
+    const q = currentSearch.toLowerCase();
+    filtered = filtered.filter(m =>
+      m.name.toLowerCase().includes(q) ||
+      m.author.toLowerCase().includes(q) ||
+      m.description.toLowerCase().includes(q) ||
+      m.tags.some(t => t.toLowerCase().includes(q))
+    );
+  }
+
+  // Sort
+  filtered.sort((a, b) => {
+    switch (currentSort) {
+      case 'downloads': return b.downloads - a.downloads;
+      case 'newest': return new Date(b.addedDate) - new Date(a.addedDate);
+      case 'name': return a.name.localeCompare(b.name);
+      case 'rating':
+      default: return b.rating - a.rating;
+    }
   });
-});
 
-/* ===== DOM Refs ===== */
-const dropzone = document.getElementById('dropzone');
-const fileInput = document.getElementById('fileInput');
-const btnGenerate = document.getElementById('btnGenerate');
-const resultSection = document.getElementById('resultSection');
-const resultImage = document.getElementById('resultImage');
-const base64Output = document.getElementById('base64Output');
-const resultSize = document.getElementById('resultSize');
-const resultDimensions = document.getElementById('resultDimensions');
-const resultType = document.getElementById('resultType');
-const toast = document.getElementById('toast');
+  return filtered;
+}
 
-let currentBase64 = '';
-let currentFormat = 'raw';
-let currentMimeType = 'image/png';
+/* ===== Format Downloads ===== */
+function formatDownloads(n) {
+  if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M';
+  if (n >= 1000) return (n / 1000).toFixed(1) + 'K';
+  return n.toString();
+}
+
+/* ===== Render Model Card ===== */
+function renderModelCard(model, index) {
+  const typeConfig = TYPE_CONFIG[model.type] || { icon: '📦' };
+  
+  return `
+    <div class="model-card" style="animation-delay:${index * 0.04}s">
+      <div class="card-header">
+        <span class="card-type-icon" title="${typeConfig.label || model.type}">${typeConfig.icon}</span>
+        <div class="card-rating">
+          <span class="star">⭐</span> ${model.rating}
+        </div>
+      </div>
+      <h3 class="card-name">${model.name}</h3>
+      <p class="card-author">di ${model.author}</p>
+      <p class="card-description">${model.description}</p>
+      <div class="card-meta">
+        <span class="meta-badge">📐 ${model.parameters}</span>
+        <span class="meta-badge license">📜 ${model.license}</span>
+        <span class="meta-badge">📥 ${formatDownloads(model.downloads)}</span>
+      </div>
+      <div class="card-tags">
+        ${model.tags.map(t => `<span class="tag" data-tag="${t}">#${t}</span>`).join('')}
+      </div>
+      <div class="card-footer">
+      <a href="${model.link.startsWith('http') ? model.link : '#'}" class="btn btn-primary" target="_blank" rel="noopener noreferrer">
+        🔗 Vai al modello
+      </a>
+      <button class="btn btn-secondary copy-link-btn" data-link="${model.link}" title="Copia link" aria-label="Copia link modello">
+        📋
+      </button>
+      </div>
+    </div>
+  `;
+}
+
+/* ===== Render All Models ===== */
+function renderModels() {
+  const filtered = getFilteredModels();
+  const grid = document.getElementById('modelGrid');
+  const noResults = document.getElementById('noResults');
+  const resultsInfo = document.getElementById('resultsInfo');
+
+  if (filtered.length === 0) {
+    grid.innerHTML = '';
+    noResults.style.display = 'block';
+    resultsInfo.textContent = '';
+  } else {
+    noResults.style.display = 'none';
+    grid.innerHTML = filtered.map((m, i) => renderModelCard(m, i)).join('');
+    resultsInfo.textContent = `Mostrando ${filtered.length} di ${models.length} modelli`;
+  }
+
+  updateStats();
+  bindCardEvents();
+}
+
+/* ===== Bind Events ===== */
+function bindEvents() {
+  // Search
+  const searchInput = document.getElementById('searchInput');
+  const searchClear = document.getElementById('searchClear');
+  
+  searchInput.addEventListener('input', (e) => {
+    currentSearch = e.target.value;
+    searchClear.classList.toggle('visible', !!currentSearch);
+    renderModels();
+  });
+  
+  searchClear.addEventListener('click', () => {
+    searchInput.value = '';
+    currentSearch = '';
+    searchClear.classList.remove('visible');
+    renderModels();
+    searchInput.focus();
+  });
+
+  // Type filters
+  document.getElementById('typeFilters').addEventListener('click', (e) => {
+    const chip = e.target.closest('.chip');
+    if (!chip) return;
+    
+    document.querySelectorAll('#typeFilters .chip').forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+    currentType = chip.dataset.type;
+    renderModels();
+  });
+
+  // Sort
+  document.getElementById('sortSelect').addEventListener('change', (e) => {
+    currentSort = e.target.value;
+    renderModels();
+  });
+
+  // Reset filters
+  document.getElementById('resetFilters').addEventListener('click', () => {
+    currentSearch = '';
+    currentType = 'all';
+    currentSort = 'rating';
+    document.getElementById('searchInput').value = '';
+    document.getElementById('searchClear').classList.remove('visible');
+    document.getElementById('sortSelect').value = 'rating';
+    document.querySelectorAll('#typeFilters .chip').forEach(c => {
+      c.classList.toggle('active', c.dataset.type === 'all');
+    });
+    renderModels();
+  });
+
+  // Keyboard shortcut: press '/' to focus search
+  document.addEventListener('keydown', (e) => {
+    if (e.key === '/' && document.activeElement !== searchInput) {
+      e.preventDefault();
+      searchInput.focus();
+    }
+    if (e.key === 'Escape') {
+      searchInput.blur();
+    }
+  });
+}
+
+/* ===== Bind Card Events (event delegation) ===== */
+function bindCardEvents() {
+  // Already bound via delegation in init - no-op for re-renders
+}
+
+// Single delegated listener for card interactions
+function initCardDelegation() {
+  const grid = document.getElementById('modelGrid');
+  
+  grid.addEventListener('click', (e) => {
+    // Tag clicks → search for that tag
+    const tag = e.target.closest('.tag');
+    if (tag) {
+      currentSearch = tag.dataset.tag;
+      const input = document.getElementById('searchInput');
+      input.value = currentSearch;
+      document.getElementById('searchClear').classList.add('visible');
+      renderModels();
+      input.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      return;
+    }
+    
+    // Copy link buttons
+    const copyBtn = e.target.closest('.copy-link-btn');
+    if (copyBtn) {
+      navigator.clipboard.writeText(copyBtn.dataset.link).then(() => {
+        showToast('Link copiato! ✅', 'success');
+      }).catch(() => {
+        showToast('Link: ' + copyBtn.dataset.link, '');
+      });
+      return;
+    }
+  });
+}
 
 /* ===== Toast ===== */
 let toastTimer;
 function showToast(msg, type = '') {
+  const toast = document.getElementById('toast');
   clearTimeout(toastTimer);
   toast.textContent = msg;
   toast.className = `toast ${type}`;
@@ -37,242 +271,5 @@ function showToast(msg, type = '') {
   toastTimer = setTimeout(() => toast.classList.remove('show'), 2500);
 }
 
-/* ===== Dropzone ===== */
-dropzone.addEventListener('click', () => fileInput.click());
-
-dropzone.addEventListener('dragover', (e) => {
-  e.preventDefault();
-  dropzone.classList.add('drag-over');
-});
-
-dropzone.addEventListener('dragleave', () => {
-  dropzone.classList.remove('drag-over');
-});
-
-dropzone.addEventListener('drop', (e) => {
-  e.preventDefault();
-  dropzone.classList.remove('drag-over');
-  const file = e.dataTransfer.files[0];
-  if (file) processFile(file);
-});
-
-fileInput.addEventListener('change', () => {
-  const file = fileInput.files[0];
-  if (file) processFile(file);
-});
-
-/* ===== File Processing ===== */
-function processFile(file) {
-  if (!file.type.startsWith('image/')) {
-    showToast('Per favore carica un file immagine!', 'error');
-    return;
-  }
-  if (file.size > 10 * 1024 * 1024) {
-    showToast('Il file è troppo grande! Max 10MB', 'error');
-    return;
-  }
-
-  currentMimeType = file.type;
-  const reader = new FileReader();
-  reader.onload = () => {
-    currentBase64 = reader.result;
-    showResult(currentBase64, file.type, file.size);
-  };
-  reader.onerror = () => showToast('Errore nella lettura del file', 'error');
-  reader.readAsDataURL(file);
-}
-
-/* ===== Generate Image ===== */
-btnGenerate.addEventListener('click', () => {
-  const width = parseInt(document.getElementById('genWidth').value) || 400;
-  const height = parseInt(document.getElementById('genHeight').value) || 300;
-  const bgColor = document.getElementById('genBgColor').value || '#6366f1';
-  const textColor = document.getElementById('genTextColor').value || '#ffffff';
-  const text = document.getElementById('genText').value || 'Hello World';
-  const fontSize = parseInt(document.getElementById('genFontSize').value) || 48;
-
-  const canvas = document.createElement('canvas');
-  canvas.width = width;
-  canvas.height = height;
-  const ctx = canvas.getContext('2d');
-
-  // Background
-  ctx.fillStyle = bgColor;
-  ctx.fillRect(0, 0, width, height);
-
-  // Subtle grid pattern for visual interest
-  ctx.strokeStyle = 'rgba(255,255,255,0.04)';
-  ctx.lineWidth = 1;
-  const gridSize = 30;
-  for (let x = 0; x < width; x += gridSize) {
-    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, height); ctx.stroke();
-  }
-  for (let y = 0; y < height; y += gridSize) {
-    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(width, y); ctx.stroke();
-  }
-
-  // Text
-  ctx.fillStyle = textColor;
-  ctx.font = `bold ${fontSize}px "Segoe UI", system-ui, sans-serif`;
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-
-  // Word wrap for long text
-  const maxWidth = width * 0.85;
-  const words = text.split(' ');
-  const lines = [];
-  let currentLine = '';
-
-  for (const word of words) {
-    const testLine = currentLine ? `${currentLine} ${word}` : word;
-    if (ctx.measureText(testLine).width > maxWidth && currentLine) {
-      lines.push(currentLine);
-      currentLine = word;
-    } else {
-      currentLine = testLine;
-    }
-  }
-  if (currentLine) lines.push(currentLine);
-
-  // Check for any overly long lines and reduce font if needed
-  let effectiveFontSize = fontSize;
-  for (const line of lines) {
-    const lineWidth = ctx.measureText(line).width;
-    if (lineWidth > maxWidth) {
-      effectiveFontSize = Math.min(effectiveFontSize, Math.floor(maxWidth / lineWidth * fontSize * 0.9));
-    }
-  }
-  if (effectiveFontSize !== fontSize) {
-    ctx.font = `bold ${effectiveFontSize}px "Segoe UI", system-ui, sans-serif`;
-  }
-
-  const lineHeight = fontSize * 1.3;
-  const totalHeight = lines.length * lineHeight;
-  const startY = (height - totalHeight) / 2 + lineHeight / 2;
-
-  lines.forEach((line, i) => {
-    ctx.fillText(line, width / 2, startY + i * lineHeight);
-  });
-
-  currentMimeType = 'image/png';
-  currentBase64 = canvas.toDataURL('image/png');
-  // More accurate size: strip data URI prefix before estimating
-  const base64Body = currentBase64.split(',')[1] || currentBase64;
-  const sizeBytes = Math.round((base64Body.length * 3) / 4);
-  showResult(currentBase64, 'image/png', sizeBytes);
-
-  showToast('Immagine generata con successo!', 'success');
-});
-
-/* ===== Show Result ===== */
-function showResult(dataUri, mimeType, sizeBytes) {
-  resultImage.src = dataUri;
-  resultSection.style.display = 'block';
-
-  // Info
-  const sizeKB = (sizeBytes / 1024).toFixed(1);
-  const sizeMB = sizeBytes > 1024 * 1024 ? ` (${(sizeBytes / 1024 / 1024).toFixed(2)} MB)` : '';
-  resultSize.textContent = `📦 ${sizeKB} KB${sizeMB}`;
-
-  resultType.textContent = `🏷️ ${mimeType}`;
-
-  resultImage.onload = () => {
-    resultDimensions.textContent = `📐 ${resultImage.naturalWidth} × ${resultImage.naturalHeight} px`;
-  };
-  if (resultImage.complete) {
-    resultDimensions.textContent = `📐 ${resultImage.naturalWidth} × ${resultImage.naturalHeight} px`;
-  }
-
-  // Format output
-  updateOutputFormat();
-  resultSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
-
-/* ===== Output Format ===== */
-function updateOutputFormat() {
-  switch (currentFormat) {
-    case 'raw':
-      base64Output.value = currentBase64.split(',')[1] || currentBase64;
-      break;
-    case 'datauri':
-      base64Output.value = currentBase64;
-      break;
-    case 'css':
-      base64Output.value = `url(${currentBase64})`;
-      break;
-    case 'html':
-      base64Output.value = `<img src="${currentBase64}" alt="Base64 Image">`;
-      break;
-    default:
-      base64Output.value = currentBase64;
-  }
-}
-
-document.querySelectorAll('.base64-format-btns .btn-xs').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.base64-format-btns .btn-xs').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    currentFormat = btn.dataset.format;
-    updateOutputFormat();
-  });
-});
-
-/* ===== Copy ===== */
-document.getElementById('btnCopy').addEventListener('click', copyBase64);
-document.getElementById('btnCopyInline').addEventListener('click', copyBase64);
-
-async function copyBase64() {
-  try {
-    await navigator.clipboard.writeText(base64Output.value);
-    showToast('Copiato negli appunti! ✅', 'success');
-  } catch {
-    base64Output.select();
-    document.execCommand('copy');
-    showToast('Copiato! ✅', 'success');
-  }
-}
-
-/* ===== Download ===== */
-document.getElementById('btnDownload').addEventListener('click', () => {
-  const link = document.createElement('a');
-  const ext = currentMimeType.split('/')[1] || 'png';
-  link.download = `base64-image.${ext}`;
-  link.href = currentBase64;
-  link.click();
-  showToast('Download avviato! 🎉', 'success');
-});
-
-/* ===== Clear ===== */
-document.getElementById('btnClear').addEventListener('click', () => {
-  currentBase64 = '';
-  base64Output.value = '';
-  resultImage.src = '';
-  resultSection.style.display = 'none';
-  showToast('Cancellato!', '');
-});
-
-/* ===== Color Sync ===== */
-document.getElementById('genBgColor').addEventListener('input', (e) => {
-  document.getElementById('genBgColorText').value = e.target.value;
-});
-document.getElementById('genBgColorText').addEventListener('input', (e) => {
-  const val = e.target.value;
-  if (/^#[0-9a-fA-F]{6}$/.test(val)) {
-    document.getElementById('genBgColor').value = val;
-  }
-});
-
-document.getElementById('genTextColor').addEventListener('input', (e) => {
-  document.getElementById('genTextColorText').value = e.target.value;
-});
-document.getElementById('genTextColorText').addEventListener('input', (e) => {
-  const val = e.target.value;
-  if (/^#[0-9a-fA-F]{6}$/.test(val)) {
-    document.getElementById('genTextColor').value = val;
-  }
-});
-
-/* ===== Font Size ===== */
-document.getElementById('genFontSize').addEventListener('input', (e) => {
-  document.getElementById('genFontSizeVal').textContent = `${e.target.value}px`;
-});
+/* ===== Start ===== */
+loadModels();
