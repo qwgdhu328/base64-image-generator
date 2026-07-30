@@ -3,92 +3,138 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Open Model Hub - Directory Modelli AI Open Source</title>
-  <meta name="description" content="Scopri e condividi modelli AI open source: LLM, text-to-image, audio, video e molto altro.">
+  <title>DevHub - Condividi i tuoi progetti</title>
+  <meta name="description" content="La community dove sviluppatori condividono progetti, ricevono feedback e crescono insieme.">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <div class="bg-animated"></div>
 
-  <header class="header">
-    <div class="header-top">
-      <div class="logo">
-        <span class="logo-icon">🧠</span>
-        <span class="logo-text">Open<span class="logo-accent">Model</span>Hub</span>
+  <!-- Navbar -->
+  <nav class="navbar" id="navbar">
+    <div class="nav-inner">
+      <a href="#" class="nav-logo" id="navLogo">
+        <span class="logo-icon">🚀</span>DevHub
+      </a>
+      <div class="nav-actions" id="navActions">
+        <button class="btn btn-outline" id="btnLogin">🔐 Accedi</button>
       </div>
-      <p class="subtitle">Scopri, condividi e usa modelli AI open source — tutti in un posto</p>
     </div>
-  </header>
+  </nav>
+
+  <!-- Hero (mostrato solo se non loggato) -->
+  <section class="hero" id="hero">
+    <h1>Condividi i tuoi progetti<br>con il mondo</h1>
+    <p>La community open source dove sviluppatori mostrano cosa stanno costruendo</p>
+    <button class="btn btn-primary btn-lg" id="btnHeroStart">🚀 Inizia ora — È gratis</button>
+  </section>
 
   <main class="container">
-    <!-- Stats Bar -->
+    <!-- Stats -->
     <div class="stats-bar" id="statsBar">
-      <div class="stat"><span class="stat-num" id="statTotal">0</span> modelli</div>
-      <div class="stat"><span class="stat-num" id="statTypes">0</span> categorie</div>
-      <div class="stat"><span class="stat-num" id="statTop">—</span> top rated</div>
+      <div class="stat"><span class="stat-num" id="statProjects">0</span> progetti</div>
+      <div class="stat"><span class="stat-num" id="statUsers">0</span> sviluppatori</div>
+      <div class="stat"><span class="stat-num" id="statLikes">0</span> ❤️ totali</div>
     </div>
 
-    <!-- Search & Filters -->
-    <div class="controls">
-      <div class="search-wrap">
-        <span class="search-icon">🔍</span>
-        <input type="text" id="searchInput" placeholder="Cerca modello per nome, autore, tags..." autocomplete="off" aria-label="Cerca modelli AI">
-        <button class="search-clear" id="searchClear" title="Pulisci">✕</button>
-      </div>
+    <!-- Actions bar -->
+    <div class="actions-bar" id="actionsBar" style="display:none">
+      <h2>🌍 Progetti della community</h2>
+      <button class="btn btn-primary" id="btnNewProject">➕ Nuovo Progetto</button>
+    </div>
 
-      <div class="filters">
-        <div class="filter-group">
-          <span class="filter-label">Tipo:</span>
-          <div class="filter-chips" id="typeFilters">
-            <button class="chip active" data-type="all">Tutti</button>
-          </div>
-        </div>
-        <div class="filter-group">
-          <span class="filter-label"><label for="sortSelect">Ordina:</label></span>
-          <select id="sortSelect" class="sort-select">
-            <option value="rating">⭐ Migliori</option>
-            <option value="downloads">📥 Più scaricati</option>
-            <option value="newest">🆕 Più recenti</option>
-            <option value="name">🔤 Nome A-Z</option>
-          </select>
-        </div>
+    <!-- Filters -->
+    <div class="filters" id="filters">
+      <div class="filter-chips" id="categoryFilters">
+        <button class="chip active" data-cat="all">Tutti</button>
+        <button class="chip" data-cat="web">🌐 Web</button>
+        <button class="chip" data-cat="mobile">📱 Mobile</button>
+        <button class="chip" data-cat="ai">🤖 AI/ML</button>
+        <button class="chip" data-cat="game">🎮 Giochi</button>
+        <button class="chip" data-cat="tool">🛠️ Tools</button>
+        <button class="chip" data-cat="other">📦 Altro</button>
       </div>
     </div>
 
-    <!-- Results Info -->
-    <div class="results-info" id="resultsInfo"></div>
-
-    <!-- Model Grid -->
-    <div class="model-grid" id="modelGrid">
-      <div class="loading">Caricamento modelli...</div>
+    <!-- Project Grid -->
+    <div class="project-grid" id="projectGrid">
+      <div class="loading">Caricamento progetti...</div>
     </div>
 
-    <!-- No Results -->
-    <div class="no-results" id="noResults" style="display:none;">
-      <div class="no-results-icon">🔎</div>
-      <h3>Nessun modello trovato</h3>
-      <p>Prova a cambiare i filtri o la ricerca</p>
-      <button class="btn btn-primary" id="resetFilters">🔄 Resetta filtri</button>
+    <!-- No projects -->
+    <div class="empty-state" id="emptyState" style="display:none">
+      <div class="empty-icon">📭</div>
+      <h3>Nessun progetto ancora</h3>
+      <p>Sii il primo a condividere qualcosa!</p>
+      <button class="btn btn-primary" id="btnEmptyCreate">➕ Crea progetto</button>
     </div>
-
-    <!-- Add Model CTA -->
-    <section class="add-model-cta">
-      <div class="cta-card">
-        <div class="cta-icon">📦</div>
-        <h3>Hai un modello da condividere?</h3>
-        <p>Aggiungilo al catalogo modificando <code>models.json</code> e facendo una Pull Request su GitHub!</p>
-        <a href="https://github.com/qwgdhu328/base64-image-generator" class="btn btn-secondary" target="_blank">
-          📝 Aggiungi su GitHub
-        </a>
-      </div>
-    </section>
   </main>
+
+  <!-- MODAL: Auth -->
+  <div class="modal-overlay" id="modalAuth">
+    <div class="modal">
+      <button class="modal-close" id="closeAuth">✕</button>
+      <div class="modal-tabs">
+        <button class="modal-tab active" data-tab="login">Accedi</button>
+        <button class="modal-tab" data-tab="signup">Registrati</button>
+      </div>
+      <form id="formLogin" class="auth-form active">
+        <input type="email" id="loginEmail" placeholder="Email" required>
+        <input type="password" id="loginPassword" placeholder="Password" required minlength="6">
+        <button type="submit" class="btn btn-primary btn-full">🔐 Accedi</button>
+        <p class="auth-error" id="loginError"></p>
+      </form>
+      <form id="formSignup" class="auth-form">
+        <input type="text" id="signupUsername" placeholder="Username" required minlength="3">
+        <input type="email" id="signupEmail" placeholder="Email" required>
+        <input type="password" id="signupPassword" placeholder="Password (min 6 caratteri)" required minlength="6">
+        <button type="submit" class="btn btn-primary btn-full">✨ Registrati</button>
+        <p class="auth-error" id="signupError"></p>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: New Project -->
+  <div class="modal-overlay" id="modalProject">
+    <div class="modal modal-lg">
+      <button class="modal-close" id="closeProject">✕</button>
+      <h2 id="modalProjectTitle">➕ Nuovo Progetto</h2>
+      <form id="formProject">
+        <input type="hidden" id="editProjectId">
+        <input type="text" id="projectTitle" placeholder="Titolo del progetto" required maxlength="100">
+        <textarea id="projectDesc" placeholder="Descrivi il tuo progetto... Cosa fa? Che tecnologie usa?" required rows="4" maxlength="2000"></textarea>
+        <div class="form-row">
+          <input type="url" id="projectUrl" placeholder="Link al progetto (GitHub, sito, ecc.)">
+          <input type="url" id="projectImage" placeholder="URL immagine (screenshot)">
+        </div>
+        <div class="form-row">
+          <select id="projectCategory">
+            <option value="web">🌐 Web</option>
+            <option value="mobile">📱 Mobile</option>
+            <option value="ai">🤖 AI/ML</option>
+            <option value="game">🎮 Giochi</option>
+            <option value="tool">🛠️ Tools</option>
+            <option value="other">📦 Altro</option>
+          </select>
+          <input type="text" id="projectTags" placeholder="Tags: react, node, ai (separati da virgola)">
+        </div>
+        <button type="submit" class="btn btn-primary btn-full" id="btnSubmitProject">🚀 Pubblica Progetto</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: Project Detail -->
+  <div class="modal-overlay" id="modalDetail">
+    <div class="modal modal-lg" id="detailContent"></div>
+  </div>
 
   <!-- Toast -->
   <div class="toast" id="toast"></div>
 
   <footer class="footer">
-    <p>🧠 OpenModelHub — Catalogo open source di modelli AI • <span id="footerCount">0</span> modelli in directory</p>
+    <p>🚀 DevHub · Costruito con Supabase · Open Source · <span id="footerCount">0</span> progetti condivisi</p>
   </footer>
 
   <script src="script.js" defer></script>
