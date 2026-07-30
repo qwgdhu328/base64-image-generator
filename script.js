@@ -300,23 +300,23 @@ document.getElementById('btnCopyRaw').addEventListener('click', () => {
   copyToClipboard(base64);
 });
 document.getElementById('btnCopyDataUri').addEventListener('click', () => {
-  const { dataUri } = getBase64AndUri(true);
-  if (!getBase64AndUri(true).base64) { showToast('Genera prima un\'immagine!', 'error'); return; }
+  const { base64, dataUri } = getBase64AndUri(true);
+  if (!base64) { showToast('Genera prima un\'immagine!', 'error'); return; }
   copyToClipboard(dataUri);
 });
 document.getElementById('btnCopyCss').addEventListener('click', () => {
-  const { dataUri } = getBase64AndUri(true);
-  if (!getBase64AndUri(true).base64) { showToast('Genera prima un\'immagine!', 'error'); return; }
+  const { base64, dataUri } = getBase64AndUri(true);
+  if (!base64) { showToast('Genera prima un\'immagine!', 'error'); return; }
   copyToClipboard(`background-image: url("${dataUri}");`);
 });
 document.getElementById('btnCopyHtml').addEventListener('click', () => {
-  const { dataUri } = getBase64AndUri(true);
-  if (!getBase64AndUri(true).base64) { showToast('Genera prima un\'immagine!', 'error'); return; }
+  const { base64, dataUri } = getBase64AndUri(true);
+  if (!base64) { showToast('Genera prima un\'immagine!', 'error'); return; }
   copyToClipboard(`<img src="${dataUri}" alt="Base64 Image" />`);
 });
 document.getElementById('btnDownload').addEventListener('click', () => {
-  const { dataUri } = getBase64AndUri(true);
-  if (!getBase64AndUri(true).base64) { showToast('Genera prima un\'immagine!', 'error'); return; }
+  const { base64, dataUri } = getBase64AndUri(true);
+  if (!base64) { showToast('Genera prima un\'immagine!', 'error'); return; }
   downloadFile(dataUri, 'generated-image.png');
 });
 
@@ -327,23 +327,23 @@ document.getElementById('btnCopyRaw2').addEventListener('click', () => {
   copyToClipboard(base64);
 });
 document.getElementById('btnCopyDataUri2').addEventListener('click', () => {
-  const { dataUri } = getBase64AndUri(false);
-  if (!getBase64AndUri(false).base64) { showToast('Carica prima un\'immagine!', 'error'); return; }
+  const { base64, dataUri } = getBase64AndUri(false);
+  if (!base64) { showToast('Carica prima un\'immagine!', 'error'); return; }
   copyToClipboard(dataUri);
 });
 document.getElementById('btnCopyCss2').addEventListener('click', () => {
-  const { dataUri } = getBase64AndUri(false);
-  if (!getBase64AndUri(false).base64) { showToast('Carica prima un\'immagine!', 'error'); return; }
+  const { base64, dataUri } = getBase64AndUri(false);
+  if (!base64) { showToast('Carica prima un\'immagine!', 'error'); return; }
   copyToClipboard(`background-image: url("${dataUri}");`);
 });
 document.getElementById('btnCopyHtml2').addEventListener('click', () => {
-  const { dataUri } = getBase64AndUri(false);
-  if (!getBase64AndUri(false).base64) { showToast('Carica prima un\'immagine!', 'error'); return; }
+  const { base64, dataUri } = getBase64AndUri(false);
+  if (!base64) { showToast('Carica prima un\'immagine!', 'error'); return; }
   copyToClipboard(`<img src="${dataUri}" alt="Base64 Image" />`);
 });
 document.getElementById('btnDownload2').addEventListener('click', () => {
-  const { dataUri, format } = getBase64AndUri(false);
-  if (!getBase64AndUri(false).base64) { showToast('Carica prima un\'immagine!', 'error'); return; }
+  const { base64, dataUri, format } = getBase64AndUri(false);
+  if (!base64) { showToast('Carica prima un\'immagine!', 'error'); return; }
   const ext = format === 'image/png' ? 'png' : format === 'image/jpeg' ? 'jpg' : 'webp';
   downloadFile(dataUri, `converted-image.${ext}`);
 });
