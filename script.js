@@ -35,7 +35,6 @@ async function checkAuth() {
   }
   updateUI();
   if (currentUser) await loadUserLikes();
-  loadProjects();
 }
 
 async function signUp(email, password, username) {
@@ -344,7 +343,7 @@ async function openProjectDetail(projectId) {
 /* ===== Create/Edit Project ===== */
 async function submitProject(e) {
   e.preventDefault();
-  if (!currentUser) return;
+  if (!currentUser) { showToast('🔐 Devi accedere prima!', 'error'); openModal('modalAuth'); return; }
   
   const id = document.getElementById('editProjectId').value;
   const title = document.getElementById('projectTitle').value.trim();
@@ -442,6 +441,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // New project button
   document.getElementById('btnNewProject').addEventListener('click', () => {
+    if (!currentUser) { openModal('modalAuth'); return; }
     document.getElementById('editProjectId').value = '';
     document.getElementById('formProject').reset();
     document.getElementById('modalProjectTitle').textContent = '➕ Nuovo Progetto';
@@ -449,6 +449,7 @@ document.addEventListener('DOMContentLoaded', () => {
     openModal('modalProject');
   });
   document.getElementById('btnEmptyCreate')?.addEventListener('click', () => {
+    if (!currentUser) { openModal('modalAuth'); return; }
     document.getElementById('editProjectId').value = '';
     document.getElementById('formProject').reset();
     document.getElementById('modalProjectTitle').textContent = '➕ Nuovo Progetto';
