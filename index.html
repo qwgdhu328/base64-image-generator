@@ -3,139 +3,189 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DevHub - Condividi i tuoi progetti</title>
-  <meta name="description" content="La community dove sviluppatori condividono progetti, ricevono feedback e crescono insieme.">
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <title>Base64 Image Generator</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="bg-animated"></div>
+  <div class="bg-glow"></div>
 
-  <!-- Navbar -->
-  <nav class="navbar" id="navbar">
-    <div class="nav-inner">
-      <a href="#" class="nav-logo" id="navLogo">
-        <span class="logo-icon">🚀</span>DevHub
-      </a>
-      <div class="nav-actions" id="navActions">
-        <button class="btn btn-outline" id="btnLogin">🔐 Accedi</button>
+  <header>
+    <nav class="navbar">
+      <span class="logo">🖼️ Base64<span class="accent">Generator</span></span>
+      <div class="nav-links">
+        <button class="tab-btn active" data-tab="generator">🎨 Generatore</button>
+        <button class="tab-btn" data-tab="converter">📤 Convertitore</button>
       </div>
-    </div>
-  </nav>
+    </nav>
+  </header>
 
-  <!-- Hero (mostrato solo se non loggato) -->
-  <section class="hero" id="hero">
-    <h1>Condividi i tuoi progetti<br>con il mondo</h1>
-    <p>La community open source dove sviluppatori mostrano cosa stanno costruendo</p>
-    <button class="btn btn-primary btn-lg" id="btnHeroStart">🚀 Inizia ora — È gratis</button>
-  </section>
+  <main>
+    <!-- Hero -->
+    <section class="hero">
+      <h1>Generatore Base64<span class="accent">.</span></h1>
+      <p>Converti immagini in Base64 o creane di nuove. Copia in raw, Data URI, CSS o HTML. Gratis e senza limiti.</p>
+    </section>
 
-  <main class="container">
-    <!-- Stats -->
-    <div class="stats-bar" id="statsBar">
-      <div class="stat"><span class="stat-num" id="statProjects">0</span> progetti</div>
-      <div class="stat"><span class="stat-num" id="statUsers">0</span> sviluppatori</div>
-      <div class="stat"><span class="stat-num" id="statLikes">0</span> ❤️ totali</div>
-    </div>
+    <!-- TAB 1: Generatore -->
+    <section class="tab-content active" id="tab-generator">
+      <div class="workspace">
+        <!-- Pannello di controllo -->
+        <div class="panel panel-controls">
+          <h2>🎨 Crea Immagine</h2>
 
-    <!-- Actions bar -->
-    <div class="actions-bar" id="actionsBar" style="display:none">
-      <h2>🌍 Progetti della community</h2>
-      <button class="btn btn-primary" id="btnNewProject">➕ Nuovo Progetto</button>
-    </div>
+          <div class="control-group">
+            <label>Larghezza (px)</label>
+            <input type="number" id="genWidth" value="400" min="50" max="2000" step="10">
+          </div>
+          <div class="control-group">
+            <label>Altezza (px)</label>
+            <input type="number" id="genHeight" value="300" min="50" max="2000" step="10">
+          </div>
+          <div class="control-group">
+            <label>Colore Sfondo</label>
+            <div class="color-picker-wrap">
+              <input type="color" id="genBgColor" value="#7c3aed">
+              <input type="text" id="genBgColorHex" value="#7c3aed" maxlength="7">
+            </div>
+          </div>
+          <div class="control-group">
+            <label>Tipo Sfondo</label>
+            <select id="genBgType">
+              <option value="solid">Tinta Unita</option>
+              <option value="gradient">Gradiente</option>
+              <option value="pattern">Pattern Geometrico</option>
+              <option value="noise">Noise</option>
+            </select>
+          </div>
+          <div class="control-group" id="gradientGroup" style="display:none">
+            <label>Colore Gradiente 2</label>
+            <input type="color" id="genGradColor" value="#ec4899">
+          </div>
 
-    <!-- Filters -->
-    <div class="filters" id="filters">
-      <div class="filter-chips" id="categoryFilters">
-        <button class="chip active" data-cat="all">Tutti</button>
-        <button class="chip" data-cat="web">🌐 Web</button>
-        <button class="chip" data-cat="mobile">📱 Mobile</button>
-        <button class="chip" data-cat="ai">🤖 AI/ML</button>
-        <button class="chip" data-cat="game">🎮 Giochi</button>
-        <button class="chip" data-cat="tool">🛠️ Tools</button>
-        <button class="chip" data-cat="other">📦 Altro</button>
+          <div class="control-group">
+            <label>Testo</label>
+            <input type="text" id="genText" value="Hello World" placeholder="Inserisci testo..." maxlength="100">
+          </div>
+          <div class="control-group">
+            <label>Font (px)</label>
+            <input type="number" id="genFontSize" value="48" min="10" max="200" step="2">
+          </div>
+          <div class="control-group">
+            <label>Colore Testo</label>
+            <input type="color" id="genTextColor" value="#ffffff">
+          </div>
+          <div class="control-group">
+            <label>Font Family</label>
+            <select id="genFontFamily">
+              <option value="Inter, sans-serif">Inter (Modern)</option>
+              <option value="Georgia, serif">Georgia (Elegant)</option>
+              <option value="'Courier New', monospace">Courier New (Code)</option>
+              <option value="'Comic Sans MS', cursive">Comic Sans (Fun)</option>
+              <option value="Impact, fantasy">Impact (Bold)</option>
+            </select>
+          </div>
+
+          <button class="btn btn-primary btn-full" id="btnGenerate">🖼️ Genera Immagine</button>
+        </div>
+
+        <!-- Anteprima e Output -->
+        <div class="panel-preview-area">
+          <div class="panel panel-preview">
+            <div class="preview-header">
+              <h2>👁️ Anteprima</h2>
+              <span class="preview-size" id="previewDimensions">400 × 300</span>
+            </div>
+            <div class="preview-container" id="previewContainer">
+              <canvas id="previewCanvas" width="400" height="300"></canvas>
+            </div>
+          </div>
+
+          <div class="panel panel-output">
+            <div class="output-header">
+              <h2>📋 Output Base64</h2>
+              <div class="output-actions">
+                <button class="btn btn-sm" id="btnCopyRaw">Raw Base64</button>
+                <button class="btn btn-sm" id="btnCopyDataUri">Data URI</button>
+                <button class="btn btn-sm" id="btnCopyCss">CSS</button>
+                <button class="btn btn-sm" id="btnCopyHtml">HTML</button>
+                <button class="btn btn-sm btn-primary" id="btnDownload">💾 Scarica PNG</button>
+              </div>
+            </div>
+            <textarea id="outputBase64" readonly placeholder="Genera o carica un'immagine per vedere il Base64..."></textarea>
+            <div class="output-stats" id="outputStats"></div>
+          </div>
+        </div>
       </div>
-    </div>
+    </section>
 
-    <!-- Project Grid -->
-    <div class="project-grid" id="projectGrid">
-      <div class="loading">Caricamento progetti...</div>
-    </div>
+    <!-- TAB 2: Convertitore -->
+    <section class="tab-content" id="tab-converter">
+      <div class="workspace">
+        <div class="panel panel-controls">
+          <h2>📤 Converti Immagine</h2>
+          <p class="panel-desc">Trascina un'immagine o clicca per caricarla</p>
 
-    <!-- No projects -->
-    <div class="empty-state" id="emptyState" style="display:none">
-      <div class="empty-icon">📭</div>
-      <h3>Nessun progetto ancora</h3>
-      <p>Sii il primo a condividere qualcosa!</p>
-      <button class="btn btn-primary" id="btnEmptyCreate">➕ Crea progetto</button>
-    </div>
+          <div class="dropzone" id="dropzone">
+            <div class="dropzone-inner">
+              <span class="dropzone-icon">📁</span>
+              <p>Trascina qui l'immagine</p>
+              <span class="dropzone-or">oppure</span>
+              <button class="btn btn-outline" id="btnBrowse">Sfoglia File</button>
+              <input type="file" id="fileInput" accept="image/*" hidden>
+            </div>
+          </div>
+
+          <div class="control-group">
+            <label>Formato Output</label>
+            <select id="convertFormat">
+              <option value="image/png">PNG</option>
+              <option value="image/jpeg">JPEG</option>
+              <option value="image/webp">WebP</option>
+            </select>
+          </div>
+          <div class="control-group" id="qualityGroup">
+            <label>Qualità JPEG/WebP: <span id="qualityValue">90</span>%</label>
+            <input type="range" id="convertQuality" min="10" max="100" value="90">
+          </div>
+        </div>
+
+        <div class="panel-preview-area">
+          <div class="panel panel-preview">
+            <div class="preview-header">
+              <h2>👁️ Anteprima</h2>
+              <span class="preview-size" id="convertDimensions">—</span>
+            </div>
+            <div class="preview-container" id="convertPreview">
+              <div class="preview-placeholder" id="convertPlaceholder">
+                <span>🖼️</span>
+                <p>Nessuna immagine caricata</p>
+              </div>
+              <img id="convertImage" style="display:none" alt="Anteprima">
+            </div>
+          </div>
+
+          <div class="panel panel-output">
+            <div class="output-header">
+              <h2>📋 Output Base64</h2>
+              <div class="output-actions">
+                <button class="btn btn-sm" id="btnCopyRaw2">Raw Base64</button>
+                <button class="btn btn-sm" id="btnCopyDataUri2">Data URI</button>
+                <button class="btn btn-sm" id="btnCopyCss2">CSS</button>
+                <button class="btn btn-sm" id="btnCopyHtml2">HTML</button>
+                <button class="btn btn-sm btn-primary" id="btnDownload2">💾 Scarica</button>
+              </div>
+            </div>
+            <textarea id="outputBase642" readonly placeholder="Carica un'immagine per vedere il Base64..."></textarea>
+            <div class="output-stats" id="outputStats2"></div>
+          </div>
+        </div>
+      </div>
+    </section>
   </main>
 
-  <!-- MODAL: Auth -->
-  <div class="modal-overlay" id="modalAuth">
-    <div class="modal">
-      <button class="modal-close" id="closeAuth">✕</button>
-      <div class="modal-tabs">
-        <button class="modal-tab active" data-tab="login">Accedi</button>
-        <button class="modal-tab" data-tab="signup">Registrati</button>
-      </div>
-      <form id="formLogin" class="auth-form active">
-        <input type="email" id="loginEmail" placeholder="Email" required>
-        <input type="password" id="loginPassword" placeholder="Password" required minlength="6">
-        <button type="submit" class="btn btn-primary btn-full">🔐 Accedi</button>
-        <p class="auth-error" id="loginError"></p>
-      </form>
-      <form id="formSignup" class="auth-form">
-        <input type="text" id="signupUsername" placeholder="Username" required minlength="3">
-        <input type="email" id="signupEmail" placeholder="Email" required>
-        <input type="password" id="signupPassword" placeholder="Password (min 6 caratteri)" required minlength="6">
-        <button type="submit" class="btn btn-primary btn-full">✨ Registrati</button>
-        <p class="auth-error" id="signupError"></p>
-      </form>
-    </div>
-  </div>
-
-  <!-- MODAL: New Project -->
-  <div class="modal-overlay" id="modalProject">
-    <div class="modal modal-lg">
-      <button class="modal-close" id="closeProject">✕</button>
-      <h2 id="modalProjectTitle">➕ Nuovo Progetto</h2>
-      <form id="formProject">
-        <input type="hidden" id="editProjectId">
-        <input type="text" id="projectTitle" placeholder="Titolo del progetto" required maxlength="100">
-        <textarea id="projectDesc" placeholder="Descrivi il tuo progetto... Cosa fa? Che tecnologie usa?" required rows="4" maxlength="2000"></textarea>
-        <div class="form-row">
-          <input type="url" id="projectUrl" placeholder="Link al progetto (GitHub, sito, ecc.)">
-          <input type="url" id="projectImage" placeholder="URL immagine (screenshot)">
-        </div>
-        <div class="form-row">
-          <select id="projectCategory">
-            <option value="web">🌐 Web</option>
-            <option value="mobile">📱 Mobile</option>
-            <option value="ai">🤖 AI/ML</option>
-            <option value="game">🎮 Giochi</option>
-            <option value="tool">🛠️ Tools</option>
-            <option value="other">📦 Altro</option>
-          </select>
-          <input type="text" id="projectTags" placeholder="Tags: react, node, ai (separati da virgola)">
-        </div>
-        <button type="submit" class="btn btn-primary btn-full" id="btnSubmitProject">🚀 Pubblica Progetto</button>
-      </form>
-    </div>
-  </div>
-
-  <!-- MODAL: Project Detail -->
-  <div class="modal-overlay" id="modalDetail">
-    <div class="modal modal-lg" id="detailContent"></div>
-  </div>
-
   <!-- Toast -->
-  <div class="toast" id="toast"></div>
+  <div class="toast" id="toast">Copiato! ✅</div>
 
-  <footer class="footer">
-    <p>🚀 DevHub · Costruito con Supabase · Open Source · <span id="footerCount">0</span> progetti condivisi</p>
-  </footer>
-
-  <script src="script.js" defer></script>
+  <script src="script.js"></script>
 </body>
 </html>
