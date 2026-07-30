@@ -68,8 +68,8 @@ async function checkAuth() {
     console.error('Supabase connection error:', e);
     showToast('Connessione al server fallita', 'error');
   }
-  updateUI();
   if (currentUser) await loadUserLikes();
+  updateUI();
 }
 
 async function signUp(email, password, username) {
@@ -172,8 +172,9 @@ function renderCard(item, i) {
   const isProject = currentFeed === 'projects';
   const icon = isProject ? '💻' : '🎬';
   const liked = userLikes.has((isProject ? 'project_' : 'video_') + item.id);
-  const image = item.image_url 
-    ? `<img src="${esc(item.image_url)}" class="card-image" alt="${esc(item.title)}" onerror="this.style.display='none'" loading="lazy">`
+  const imgUrl = item.image_url || item.thumbnail_url;
+  const image = imgUrl 
+    ? `<img src="${esc(imgUrl)}" class="card-image" alt="${esc(item.title)}" onerror="this.outerHTML='<div class=\\'card-image\\'>${icon}</div>'" loading="lazy">`
     : `<div class="card-image">${icon}</div>`;
   const tags = (item.tags || []).slice(0, 4).map(t => `<span class="tag">#${esc(t)}</span>`).join('');
 
@@ -517,11 +518,7 @@ document.addEventListener('DOMContentLoaded', () => {
     resetProjectForm();
     openModal('modalProject');
   });
-  document.getElementById('btnEmptyCreate')?.addEventListener('click', () => {
-    if (!currentUser) { openModal('modalAuth'); return; }
-    resetProjectForm();
-    openModal('modalProject');
-  });
+  // btnEmptyCreate handler è dinamico in loadFeed() — non duplicarlo qui
 
   // Open video modal
   document.getElementById('btnNewVideo').addEventListener('click', () => {
