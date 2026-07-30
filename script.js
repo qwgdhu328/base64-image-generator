@@ -1,10 +1,11 @@
 /* ===== DevHub - Social Project Sharing App ===== */
 
+// Supabase config (chiavi pubbliche - safe per il frontend)
+const SUPABASE_URL = 'https://pwnfrodwvlyefxjqjknf.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_m95hApmt7P0NLXjFiYq_kw_-k3X96Td';
+
 // Init Supabase client
-const supabase = window.supabase.createClient(
-  window.SUPABASE_CONFIG.url,
-  window.SUPABASE_CONFIG.anonKey
-);
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // State
 let currentUser = null;
